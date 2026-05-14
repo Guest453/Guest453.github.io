@@ -117,35 +117,47 @@
         let intensity = 0;
         let apiKey = '';
 
-        function loadModels() {
-            // Hardcoded from GET https://gen.pollinations.ai/v1/models
-            // Filtered to: supported_endpoints includes /v1/chat/completions AND output_modalities includes text
-            // Neocities CSP blocks fetch() to external origins, so we can't do this at runtime.
-            const chatModels = [
-                'openai', 'openai-fast', 'openai-large',
-                'qwen-coder', 'mistral', 'openai-audio', 'openai-audio-large',
-                'gemini', 'gemini-flash-lite-3.1', 'gemini-fast', 'gemini-large',
-                'deepseek', 'deepseek-pro',
-                'grok', 'grok-large',
-                'gemini-search',
-                'midijourney', 'midijourney-large',
-                'claude-fast', 'claude', 'claude-large', 'claude-opus-4.7',
-                'perplexity-fast', 'perplexity-reasoning',
-                'kimi', 'kimi-k2.6',
-                'nova-fast', 'nova',
-                'glm', 'minimax',
-                'mistral-large', 'polly',
-                'qwen-coder-large', 'qwen-large', 'qwen-vision', 'qwen-safety'
-            ];
-
+        async function loadModels() {
             const select = document.getElementById('model-select');
-            select.innerHTML = '';
-            chatModels.forEach(id => {
-                const opt = document.createElement('option');
-                opt.value = id;
-                opt.innerText = id;
-                select.appendChild(opt);
-            });
+            select.innerHTML = '<option value="">loading...</option>';
+
+            try {
+                const headers = apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {};
+                const response = await fetch('https://gen.pollinations.ai/v1/models', { headers });
+                if (!response.ok) throw new Error('Failed to fetch models');
+
+                const json = await response.json();
+                // OpenAI-compatible: { object: "list", data: [...] }
+                const allModels = json.data || [];
+
+                // Only chat/text models
+                const chatModels = allModels.filter(m =>
+                    Array.isArray(m.supported_endpoints) &&
+                    m.supported_endpoints.includes('/v1/chat/completions') &&
+                    Array.isArray(m.output_modalities) &&
+                    m.output_modalities.includes('text')
+                );
+
+                if (chatModels.length === 0) throw new Error('No chat models found');
+
+                select.innerHTML = '';
+                chatModels.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.innerText = m.id;
+                    select.appendChild(opt);
+                });
+
+            } catch (error) {
+                console.error('Error fetching models:', error);
+                select.innerHTML = '';
+                ['openai', 'openai-large', 'openai-fast', 'mistral', 'deepseek', 'gemini', 'claude', 'grok'].forEach(id => {
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.innerText = id;
+                    select.appendChild(opt);
+                });
+            }
         }
 
         function linkAccount() {
