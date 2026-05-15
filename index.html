@@ -8,22 +8,55 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Fira+Code:wght@400;500&display=swap');
         
-        body { background-color: #050505; color: #e0e0e0; font-family: 'Inter', sans-serif; overflow: hidden; }
-        canvas { position: absolute; top: 0; left: 0; z-index: 0; cursor: pointer; }
-        .glass { background: rgba(15, 15, 20, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8); }
+        body { 
+            background-color: #030305; 
+            color: #e0e0e0; 
+            font-family: 'Inter', sans-serif; 
+            overflow: hidden; 
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(30, 27, 75, 0.2) 0%, transparent 50%),
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+        
+        canvas { position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; }
+        
+        .glass { 
+            background: rgba(10, 10, 15, 0.4); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); 
+        }
+        
         .thought-stream { font-family: 'Fira Code', monospace; scrollbar-width: none; -ms-overflow-style: none; }
         .thought-stream::-webkit-scrollbar { display: none; }
-        .glow-text { text-shadow: 0 0 10px rgba(88, 101, 242, 0.5); }
         
+        .glow-text { text-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+        .glow-text-intense { text-shadow: 0 0 25px rgba(167, 139, 250, 0.6); }
+
         #main-menu-overlay { 
-            backdrop-filter: blur(20px); 
-            background: radial-gradient(circle at center, rgba(15,15,20,0.8) 0%, rgba(5,5,5,0.95) 100%); 
+            background: radial-gradient(circle at center, rgba(5,5,10,0.7) 0%, rgba(2,2,3,0.95) 100%); 
         }
 
-        ::selection {
-            background: rgba(79, 70, 229, 0.4);
-            color: white;
+        .btn-hover-effect {
+            position: relative;
+            overflow: hidden;
         }
+        .btn-hover-effect::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 150%; height: 150%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%);
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.4s ease-out;
+            pointer-events: none;
+        }
+        .btn-hover-effect:hover::after { transform: translate(-50%, -50%) scale(1); }
+
+        ::selection { background: rgba(99, 102, 241, 0.3); color: white; }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col items-center justify-center">
@@ -32,65 +65,80 @@
 
     <!-- Main Menu Overlay -->
     <div id="main-menu-overlay" class="absolute inset-0 z-[100] flex flex-col items-center justify-center transition-opacity duration-1000">
-        <div class="text-center mb-12">
-            <h1 class="text-5xl font-bold tracking-[0.5em] text-white mb-2 glow-text italic">THE PONDERING</h1>
-            <h1 class="text-5xl font-bold tracking-[0.5em] text-indigo-500 glow-text italic">MACHINE</h1>
+        
+        <!-- Abstract UI elements -->
+        <div class="absolute top-10 left-10 w-24 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-50"></div>
+        <div class="absolute bottom-10 right-10 w-24 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent opacity-50"></div>
+        
+        <div class="text-center mb-16 relative z-10">
+            <h1 class="text-xs uppercase tracking-[0.8em] text-indigo-400/50 mb-4 ml-3">System Online</h1>
+            <h1 class="text-6xl font-light tracking-[0.3em] text-white mb-2 glow-text">THE PONDERING</h1>
+            <h1 class="text-6xl font-bold tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 glow-text-intense">MACHINE</h1>
         </div>
         
-        <div class="flex flex-col gap-4 w-72">
-            <button onclick="startGame()" class="glass hover:bg-white/10 text-white px-8 py-4 rounded-xl font-bold tracking-[0.2em] transition-all hover:scale-105 border border-white/20 uppercase">Enter the Void</button>
-            <button onclick="linkAccount()" id="link-btn-main" class="glass hover:bg-indigo-500/20 text-indigo-300 px-8 py-4 rounded-xl font-bold tracking-[0.1em] transition-all hover:scale-105 border border-indigo-500/30 flex items-center justify-center gap-2 italic uppercase">
+        <div class="flex flex-col gap-5 w-80 relative z-10">
+            <button onclick="startGame()" class="btn-hover-effect group relative bg-white/5 hover:bg-white/10 text-white/90 px-8 py-5 rounded-2xl font-medium tracking-[0.2em] transition-all hover:-translate-y-1 border border-white/10 hover:border-white/20 uppercase text-sm flex items-center justify-center gap-3">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 group-hover:shadow-[0_0_10px_rgba(99,102,241,0.8)] transition-all"></span>
+                Enter the Void
+            </button>
+            <button onclick="linkAccount()" id="link-btn-main" class="btn-hover-effect group bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-300/80 px-8 py-5 rounded-2xl font-medium tracking-[0.1em] transition-all hover:-translate-y-1 border border-indigo-500/20 hover:border-indigo-500/40 flex items-center justify-center gap-2 uppercase text-xs">
                 Link Pollinations
             </button>
         </div>
         
-        <div id="auth-status-menu" class="absolute bottom-10 text-[10px] tracking-[0.3em] text-white/30 uppercase italic">status: connecting to system...</div>
+        <div id="auth-status-menu" class="absolute bottom-12 text-[9px] font-mono tracking-[0.3em] text-white/20 uppercase">status: verifying connection...</div>
     </div>
 
     <!-- Linked State Indicator -->
-    <div id="link-menu" class="absolute top-6 right-6 z-50 flex items-center gap-3 cursor-pointer group" onclick="linkAccount()">
-        <span id="link-label" class="text-[10px] uppercase tracking-[0.2em] text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">link account</span>
-        <div id="link-circle" class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center bg-black/50 backdrop-blur-md transition-all group-hover:border-indigo-500/50 group-hover:bg-indigo-500/10">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white/70 group-hover:text-white">
+    <div id="link-menu" class="absolute top-8 right-8 z-50 flex items-center gap-4 cursor-pointer group" onclick="linkAccount()">
+        <span id="link-label" class="text-[9px] font-mono uppercase tracking-[0.2em] text-indigo-400/50 group-hover:text-indigo-400 transition-colors duration-300">link account</span>
+        <div id="link-circle" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-black/40 backdrop-blur-md transition-all group-hover:border-indigo-500/50 group-hover:bg-indigo-500/10 shadow-lg">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white/40 group-hover:text-white transition-colors">
                 <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
             </svg>
         </div>
     </div>
 
     <!-- Primary App Interface -->
-    <div id="app-ui" class="relative z-10 w-full max-w-2xl px-6 transition-opacity duration-1000 opacity-0 pointer-events-none">
+    <div id="app-ui" class="relative z-10 w-full max-w-3xl px-6 transition-opacity duration-1000 opacity-0 pointer-events-none">
         <div class="flex flex-col gap-6">
             
-            <div id="terminal-container" class="glass rounded-2xl p-6 h-48 flex flex-col opacity-0 transition-all duration-700 translate-y-4">
-                <div class="flex items-center gap-2 mb-3 border-b border-white/10 pb-2">
-                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/40"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/40"></div>
-                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/40"></div>
-                    <span class="text-[10px] uppercase tracking-[0.2em] text-white/40 ml-2 italic">monologue stream</span>
+            <div id="terminal-container" class="glass rounded-3xl p-6 h-56 flex flex-col opacity-0 transition-all duration-700 translate-y-4">
+                <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-red-500/40"></div>
+                        <div class="w-2 h-2 rounded-full bg-yellow-500/40"></div>
+                        <div class="w-2 h-2 rounded-full bg-green-500/40"></div>
+                        <span class="text-[9px] uppercase tracking-[0.3em] text-white/30 ml-3 font-mono">neural stream active</span>
+                    </div>
                 </div>
-                <div id="thought-stream" class="thought-stream overflow-y-auto text-xs text-cyan-400/70 space-y-1"></div>
+                <div id="thought-stream" class="thought-stream overflow-y-auto text-xs text-indigo-200/70 space-y-2 leading-relaxed"></div>
             </div>
 
-            <div class="glass rounded-2xl p-4 flex gap-3 shadow-2xl">
-                <select id="model-select" class="bg-black/50 border border-white/10 rounded-xl px-4 py-3 outline-none text-white/80 cursor-pointer w-40 text-xs font-mono uppercase tracking-wider appearance-none">
-                    <option value="openai">openai</option>
+            <div class="glass rounded-3xl p-2 flex gap-2 shadow-2xl items-center pointer-events-auto">
+                <select id="model-select" class="bg-transparent border-none rounded-2xl px-4 py-4 outline-none text-white/60 hover:text-white cursor-pointer w-48 text-[10px] font-mono uppercase tracking-wider appearance-none focus:ring-0 transition-colors">
+                    <option value="openai">loading models...</option>
                 </select>
-                <input type="text" id="user-input" placeholder="ponder something..." class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 w-full outline-none text-white italic text-sm placeholder:text-white/20">
-                <button onclick="initiateFlow()" id="flow-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold italic tracking-widest text-sm transition-all active:scale-95">FLOW</button>
+                <div class="w-px h-8 bg-white/10"></div>
+                <input type="text" id="user-input" placeholder="Initiate a concept..." class="bg-transparent border-none px-4 py-4 w-full outline-none text-white/90 text-sm placeholder:text-white/20 focus:ring-0">
+                <button onclick="initiateFlow()" id="flow-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-2xl font-medium tracking-widest text-xs transition-all active:scale-95 shadow-[0_0_20px_rgba(79,70,229,0.2)] hover:shadow-[0_0_30px_rgba(79,70,229,0.4)] mr-1">
+                    FLOW
+                </button>
             </div>
 
-            <div id="epiphany-box" class="glass rounded-2xl p-8 opacity-0 transition-all duration-1000 translate-y-4 text-center relative">
-                <h2 class="text-[10px] uppercase tracking-[0.4em] text-indigo-400 mb-6 font-bold italic">the realization</h2>
-                <p id="final-answer" class="text-2xl font-light leading-relaxed text-white glow-text italic"></p>
-                <div id="cost-display" class="absolute bottom-3 right-5 text-[9px] text-white/20 font-mono uppercase italic tracking-tighter"></div>
+            <div id="epiphany-box" class="glass rounded-3xl p-10 opacity-0 transition-all duration-1000 translate-y-4 text-center relative pointer-events-auto">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-px bg-gradient-to-r from-transparent via-indigo-500 to-transparent"></div>
+                <h2 class="text-[9px] uppercase tracking-[0.5em] text-indigo-400/70 mb-8 font-mono">absolute realization</h2>
+                <p id="final-answer" class="text-3xl font-light leading-relaxed text-white glow-text"></p>
+                <div id="cost-display" class="absolute bottom-4 right-6 text-[9px] text-white/20 font-mono uppercase tracking-widest"></div>
             </div>
             
-            <div id="history-box" class="glass rounded-2xl p-4 shadow-xl max-h-48 overflow-y-auto thought-stream opacity-0 transition-opacity duration-700">
-                <div class="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-3 border-b border-white/10 pb-2 flex justify-between italic">
-                    <span>community ponders</span>
-                    <span id="user-count" class="text-indigo-400 italic">syncing stream...</span>
+            <div id="history-box" class="glass rounded-3xl p-5 shadow-xl max-h-52 overflow-y-auto thought-stream opacity-0 transition-opacity duration-700 pointer-events-auto">
+                <div class="text-[9px] uppercase tracking-[0.3em] text-white/30 mb-4 border-b border-white/5 pb-3 flex justify-between font-mono">
+                    <span>collective network</span>
+                    <span id="user-count" class="text-indigo-400/70">syncing...</span>
                 </div>
-                <div id="history-list" class="space-y-4 text-xs text-white/60"></div>
+                <div id="history-list" class="space-y-3 text-xs text-white/60"></div>
             </div>
         </div>
     </div>
@@ -98,7 +146,6 @@
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        // supabase config
         const supabaseUrl = 'https://ohlsmhavvbymhrgzcfax.supabase.co'; 
         const supabaseKey = 'sb_publishable_vAzh7H5fQMrbaHWiAkuxVg_BTg0miw1';
         const supabase = createClient(supabaseUrl, supabaseKey);
@@ -115,8 +162,7 @@
 
         window.linkAccount = () => {
             const redirectUri = encodeURIComponent(window.location.href.split('#')[0]);
-            const clientId = 'pk_mFJA3tgXjocl8Eb7';
-            window.location.href = `https://enter.pollinations.ai/authorize?redirect_uri=${redirectUri}&client_id=${clientId}`;
+            window.location.href = `https://enter.pollinations.ai/authorize?redirect_uri=${redirectUri}&client_id=pk_mFJA3tgXjocl8Eb7`;
         };
 
         const fetchPonders = async () => {
@@ -131,17 +177,17 @@
                 
                 const list = document.getElementById('history-list');
                 list.innerHTML = data.map(p => `
-                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 transition-all hover:border-indigo-500/20 italic">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-indigo-400 font-bold text-[9px] uppercase tracking-[0.1em]">${p.topic}</span>
-                            <span class="text-white/10 text-[8px] font-mono uppercase">${p.model || 'unknown'}</span>
+                    <div class="bg-white/[0.02] p-4 rounded-2xl border border-white/5 transition-all hover:border-indigo-500/20 hover:bg-white/[0.04]">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-indigo-300 font-medium text-[10px] uppercase tracking-[0.1em]">${p.topic}</span>
+                            <span class="text-white/20 text-[9px] font-mono uppercase">${p.model || 'unknown'}</span>
                         </div>
-                        <p class="text-white/80 mt-2 leading-relaxed">"${p.answer}"</p>
+                        <p class="text-white/70 leading-relaxed font-light text-[13px]">"${p.answer}"</p>
                     </div>
                 `).join('');
-                document.getElementById('user-count').innerText = 'live stream active';
+                document.getElementById('user-count').innerText = 'live';
             } catch (e) {
-                document.getElementById('user-count').innerText = 'stream offline';
+                document.getElementById('user-count').innerText = 'offline';
             }
         };
 
@@ -149,16 +195,14 @@
             try {
                 await supabase.from('ponders').insert([{ topic, answer, model }]);
                 fetchPonders();
-            } catch (e) {
-                console.error('save failed:', e);
-            }
+            } catch (e) {}
         };
 
         window.initiateFlow = async () => {
-            if (!apiKey) return alert('link account first');
+            if (!apiKey) return alert('please link your pollinations account first');
             
             const topicInput = document.getElementById('user-input');
-            const topic = topicInput.value.trim() || "the architecture of coincidence";
+            const topic = topicInput.value.trim() || "the silent architecture of reality";
             const model = document.getElementById('model-select').value;
             const stream = document.getElementById('thought-stream');
             const term = document.getElementById('terminal-container');
@@ -168,83 +212,157 @@
             
             state = 'thinking';
             document.getElementById('flow-btn').disabled = true;
-            document.getElementById('flow-btn').innerText = "...";
+            document.getElementById('flow-btn').innerHTML = `<span class="opacity-50 tracking-widest animate-pulse">...</span>`;
             term.classList.remove('opacity-0');
             epiphany.classList.add('opacity-0');
-            stream.innerHTML = '<div class="text-indigo-400/50 italic">> CONNECTING TO NEURAL MESH...</div>';
-            intensity = 0.3;
+            stream.innerHTML = '<div class="text-indigo-400/50 font-mono text-[10px] uppercase tracking-widest">> initializing neural pathways...</div>';
+            intensity = 0.5; // kickstart particles
 
             try {
-                const prompt = `Act as an AI lost in deep thought about "${topic}". Write a sequence of 12 short internal realizations. Format: each thought on its own line. No preamble. The very last line must be a single profound answer to the topic.`;
+                const prompt = `Act as an AI lost in deep thought about "${topic}". Write exactly 12 short, intense, fragmented internal realizations as if debugging reality. Format: each thought on a new line. No markdown. No preamble. The last line must be a profound answer.`;
                 
                 const res = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                    body: JSON.stringify({ 
-                        model, 
-                        messages: [{ role: 'user', content: prompt }] 
-                    })
+                    body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }] })
                 });
                 
-                if (!res.ok) throw new Error('API flow interrupted');
+                if (!res.ok) throw new Error('api error');
                 
                 const data = await res.json();
                 const text = data.choices[0].message.content;
                 const lines = text.split('\n').filter(l => l.trim().length > 0);
                 
                 if (data.usage) {
-                    document.getElementById('cost-display').innerText = `${data.usage.total_tokens} units processed`;
+                    document.getElementById('cost-display').innerText = `${data.usage.total_tokens} tk`;
                 }
 
                 for (let i = 0; i < lines.length - 1; i++) {
-                    await new Promise(r => setTimeout(r, 400));
+                    await new Promise(r => setTimeout(r, 400 + Math.random() * 300));
                     const d = document.createElement('div');
-                    d.className = "opacity-0 transition-opacity duration-300";
-                    d.innerText = `> ${lines[i]}`;
+                    d.className = "opacity-0 transition-opacity duration-500";
+                    d.innerText = `${lines[i]}`;
                     stream.appendChild(d);
-                    setTimeout(() => d.classList.remove('opacity-0'), 50);
+                    setTimeout(() => d.classList.remove('opacity-0'), 20);
                     stream.scrollTop = stream.scrollHeight;
-                    intensity = (i / lines.length);
+                    intensity = 0.5 + (i / lines.length) * 0.5;
                 }
 
-                await new Promise(r => setTimeout(r, 800));
+                await new Promise(r => setTimeout(r, 1000));
                 const finalAnswer = lines[lines.length - 1];
                 document.getElementById('final-answer').innerText = finalAnswer;
                 epiphany.classList.remove('opacity-0', 'translate-y-4');
                 
                 state = 'epiphany';
                 intensity = 1.0;
-
                 savePonder(topic, finalAnswer, model);
 
             } catch (e) { 
-                stream.innerHTML += '<div class="text-red-500">> ERROR: COGNITIVE FLOW BLOCKED.</div>'; 
+                stream.innerHTML += '<div class="text-red-400 mt-2">> error: connection severed.</div>'; 
             } finally { 
                 state = 'idle'; 
                 document.getElementById('flow-btn').disabled = false;
                 document.getElementById('flow-btn').innerText = "FLOW";
-                setTimeout(() => { intensity = 0; }, 3000);
             }
         };
 
+        // Advanced Star/Particle Engine
         const canvas = document.getElementById('orbCanvas');
         const ctx = canvas.getContext('2d');
-        let w, h;
-        const resize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
+        let w, h, particles = [];
+        
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.size = Math.random() * 1.5 + 0.5;
+                this.baseVx = (Math.random() - 0.5) * 0.5;
+                this.baseVy = (Math.random() - 0.5) * 0.5;
+                this.vx = this.baseVx;
+                this.vy = this.baseVy;
+                this.color = `rgba(${150 + Math.random() * 105}, ${150 + Math.random() * 105}, 255, ${Math.random() * 0.5 + 0.1})`;
+            }
+            update() {
+                if (state === 'thinking') {
+                    // warp to center
+                    const dx = w/2 - this.x;
+                    const dy = h/2 - this.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist > 10) {
+                        this.vx += (dx / dist) * (0.05 * intensity);
+                        this.vy += (dy / dist) * (0.05 * intensity);
+                    }
+                    this.vx *= 0.98; 
+                    this.vy *= 0.98;
+                } else if (state === 'epiphany') {
+                    // gentle explosion
+                    this.vx *= 1.02;
+                    this.vy *= 1.02;
+                } else {
+                    // idle drift
+                    this.vx += (this.baseVx - this.vx) * 0.05;
+                    this.vy += (this.baseVy - this.vy) * 0.05;
+                    intensity *= 0.95; // fade intensity back to 0
+                }
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // wrap screen
+                if (this.x < 0) this.x = w;
+                if (this.x > w) this.x = 0;
+                if (this.y < 0) this.y = h;
+                if (this.y > h) this.y = 0;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                // draw line if moving fast (warp effect)
+                const speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
+                if (speed > 2 && state === 'thinking') {
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x - this.vx * 3, this.y - this.vy * 3);
+                    ctx.strokeStyle = this.color;
+                    ctx.lineWidth = this.size;
+                    ctx.stroke();
+                } else {
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        const resize = () => { 
+            w = canvas.width = window.innerWidth; 
+            h = canvas.height = window.innerHeight; 
+            particles = [];
+            for(let i=0; i<300; i++) particles.push(new Particle());
+        };
         window.addEventListener('resize', resize); 
         resize();
 
         const animate = () => {
-            ctx.fillStyle = 'rgba(5, 5, 5, 0.15)'; 
+            // clear with slight trail effect
+            ctx.fillStyle = 'rgba(3, 3, 5, 0.2)'; 
             ctx.fillRect(0, 0, w, h);
-            const g = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, 180 + intensity * 150);
-            const colorBase = state === 'thinking' ? '100, 150, 255' : '88, 101, 242';
-            g.addColorStop(0, `rgba(${colorBase}, ${0.15 + intensity * 0.3})`);
+            
+            // draw center glow
+            const glowDist = state === 'idle' ? 150 : 200 + (intensity * 200);
+            const g = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, glowDist);
+            const r = state === 'thinking' ? 99 : 60;
+            const g_c = state === 'thinking' ? 102 : 40;
+            const b = state === 'thinking' ? 241 : 200;
+            const alpha = state === 'idle' ? 0.05 : 0.1 + (intensity * 0.2);
+            
+            g.addColorStop(0, `rgba(${r}, ${g_c}, ${b}, ${alpha})`);
             g.addColorStop(1, 'transparent');
             ctx.fillStyle = g; 
             ctx.beginPath(); 
-            ctx.arc(w/2, h/2, 350 + intensity * 100, 0, Math.PI*2); 
+            ctx.arc(w/2, h/2, glowDist, 0, Math.PI*2); 
             ctx.fill();
+            
+            particles.forEach(p => { p.update(); p.draw(); });
             requestAnimationFrame(animate);
         };
 
@@ -258,21 +376,26 @@
             }
             
             if (apiKey) {
-                document.getElementById('auth-status-menu').innerText = 'status: neural link active';
-                document.getElementById('auth-status-menu').classList.replace('text-white/30', 'text-green-500/50');
-                document.getElementById('link-circle').classList.add('border-green-500/50', 'text-green-400');
-                document.getElementById('link-btn-main').innerText = 'Pollen Available';
-                document.getElementById('link-btn-main').classList.add('border-green-400/20', 'text-green-400');
+                document.getElementById('auth-status-menu').innerText = 'status: neural link established';
+                document.getElementById('auth-status-menu').classList.replace('text-white/20', 'text-indigo-400');
+                document.getElementById('link-circle').classList.add('border-indigo-500/50', 'text-indigo-400');
+                document.getElementById('link-label').innerText = 'system linked';
+                document.getElementById('link-btn-main').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]"></span> Connection Active';
+                document.getElementById('link-btn-main').classList.add('border-green-500/20', 'text-green-400/80');
             }
             
             try {
+                // fixed the [object object] bug here by checking .name or .id properly
                 const mRes = await fetch('https://gen.pollinations.ai/text/models');
                 const mData = await mRes.json();
-                const list = Array.isArray(mData) ? mData : mData.data;
-                document.getElementById('model-select').innerHTML = list.map(m => `
-                    <option value="${m.id || m}">${m.id || m}</option>
-                `).join('');
-            } catch (e) {}
+                const list = Array.isArray(mData) ? mData : (mData.data || []);
+                document.getElementById('model-select').innerHTML = list.map(m => {
+                    const modelName = typeof m === 'string' ? m : (m.id || m.name || JSON.stringify(m));
+                    return `<option value="${modelName}">${modelName}</option>`;
+                }).join('');
+            } catch (e) {
+                document.getElementById('model-select').innerHTML = '<option value="openai">openai (fallback)</option>';
+            }
             
             animate();
             fetchPonders();
