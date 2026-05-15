@@ -8,46 +8,21 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Fira+Code:wght@400;500&display=swap');
         
-        body {
-            background-color: #050505;
-            color: #e0e0e0;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-        }
-
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 0;
-            cursor: pointer;
-        }
-
-        .glass {
-            background: rgba(15, 15, 20, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-        }
-
-        .thought-stream {
-            font-family: 'Fira Code', monospace;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
+        body { background-color: #050505; color: #e0e0e0; font-family: 'Inter', sans-serif; overflow: hidden; }
+        canvas { position: absolute; top: 0; left: 0; z-index: 0; cursor: pointer; }
+        .glass { background: rgba(15, 15, 20, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8); }
+        .thought-stream { font-family: 'Fira Code', monospace; scrollbar-width: none; -ms-overflow-style: none; }
         .thought-stream::-webkit-scrollbar { display: none; }
-
-        @keyframes pulse-slow {
-            0%, 100% { opacity: 0.5; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
+        .glow-text { text-shadow: 0 0 10px rgba(88, 101, 242, 0.5); }
+        
+        #main-menu-overlay { 
+            backdrop-filter: blur(20px); 
+            background: radial-gradient(circle at center, rgba(15,15,20,0.8) 0%, rgba(5,5,5,0.95) 100%); 
         }
 
-        .pondering-text {
-            animation: pulse-slow 2s infinite ease-in-out;
-        }
-
-        .glow-text {
-            text-shadow: 0 0 10px rgba(88, 101, 242, 0.5);
+        ::selection {
+            background: rgba(79, 70, 229, 0.4);
+            color: white;
         }
     </style>
 </head>
@@ -55,295 +30,257 @@
 
     <canvas id="orbCanvas"></canvas>
 
+    <!-- Main Menu Overlay -->
+    <div id="main-menu-overlay" class="absolute inset-0 z-[100] flex flex-col items-center justify-center transition-opacity duration-1000">
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold tracking-[0.5em] text-white mb-2 glow-text italic">THE PONDERING</h1>
+            <h1 class="text-5xl font-bold tracking-[0.5em] text-indigo-500 glow-text italic">MACHINE</h1>
+        </div>
+        
+        <div class="flex flex-col gap-4 w-72">
+            <button onclick="startGame()" class="glass hover:bg-white/10 text-white px-8 py-4 rounded-xl font-bold tracking-[0.2em] transition-all hover:scale-105 border border-white/20 uppercase">Enter the Void</button>
+            <button onclick="linkAccount()" id="link-btn-main" class="glass hover:bg-indigo-500/20 text-indigo-300 px-8 py-4 rounded-xl font-bold tracking-[0.1em] transition-all hover:scale-105 border border-indigo-500/30 flex items-center justify-center gap-2 italic uppercase">
+                Link Pollinations
+            </button>
+        </div>
+        
+        <div id="auth-status-menu" class="absolute bottom-10 text-[10px] tracking-[0.3em] text-white/30 uppercase italic">status: connecting to system...</div>
+    </div>
+
+    <!-- Linked State Indicator -->
     <div id="link-menu" class="absolute top-6 right-6 z-50 flex items-center gap-3 cursor-pointer group" onclick="linkAccount()">
-        <span class="text-xs uppercase tracking-widest text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">link account</span>
+        <span id="link-label" class="text-[10px] uppercase tracking-[0.2em] text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">link account</span>
         <div id="link-circle" class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center bg-black/50 backdrop-blur-md transition-all group-hover:border-indigo-500/50 group-hover:bg-indigo-500/10">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white/70 group-hover:text-white"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white/70 group-hover:text-white">
+                <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+            </svg>
         </div>
     </div>
 
-    <div id="app-ui" class="relative z-10 w-full max-w-2xl px-6 transition-opacity duration-1000">
+    <!-- Primary App Interface -->
+    <div id="app-ui" class="relative z-10 w-full max-w-2xl px-6 transition-opacity duration-1000 opacity-0 pointer-events-none">
         <div class="flex flex-col gap-6">
             
-            <!-- Thought Terminal -->
-            <div id="terminal-container" class="glass rounded-2xl p-6 h-64 flex flex-col pointer-events-auto opacity-0 transition-all duration-700 translate-y-4">
+            <div id="terminal-container" class="glass rounded-2xl p-6 h-48 flex flex-col opacity-0 transition-all duration-700 translate-y-4">
                 <div class="flex items-center gap-2 mb-3 border-b border-white/10 pb-2">
-                    <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
-                    <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
-                    <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
-                    <span class="text-xs uppercase tracking-widest text-white/40 ml-2">Internal Monologue</span>
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/40"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/40"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/40"></div>
+                    <span class="text-[10px] uppercase tracking-[0.2em] text-white/40 ml-2 italic">monologue stream</span>
                 </div>
-                <div id="thought-stream" class="thought-stream overflow-y-auto text-sm text-cyan-400/80 space-y-1">
-                    <!-- Thoughts will inject here -->
-                </div>
+                <div id="thought-stream" class="thought-stream overflow-y-auto text-xs text-cyan-400/70 space-y-1"></div>
             </div>
 
-            <!-- Main Control -->
-            <div class="glass rounded-2xl p-4 flex gap-3 pointer-events-auto shadow-2xl">
-                <select id="model-select" class="bg-black/50 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-indigo-500/50 transition-all text-white/80 cursor-pointer appearance-none w-36">
-                    <option value="">loading...</option>
+            <div class="glass rounded-2xl p-4 flex gap-3 shadow-2xl">
+                <select id="model-select" class="bg-black/50 border border-white/10 rounded-xl px-4 py-3 outline-none text-white/80 cursor-pointer w-40 text-xs font-mono uppercase tracking-wider appearance-none">
+                    <option value="openai">openai</option>
                 </select>
-                <input 
-                    type="text" 
-                    id="user-input" 
-                    placeholder="Enter a concept to ponder..." 
-                    class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 w-full outline-none focus:border-indigo-500/50 transition-all text-white placeholder:text-white/20"
-                >
-                <button 
-                    onclick="initiateFlow()" 
-                    id="flow-btn"
-                    class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold transition-all active:scale-95 shadow-[0_0_20px_rgba(79,70,229,0.4)]"
-                >
-                    FLOW
-                </button>
+                <input type="text" id="user-input" placeholder="ponder something..." class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 w-full outline-none text-white italic text-sm placeholder:text-white/20">
+                <button onclick="initiateFlow()" id="flow-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-bold italic tracking-widest text-sm transition-all active:scale-95">FLOW</button>
             </div>
 
-            <!-- Epiphany Display -->
-            <div id="epiphany-box" class="glass rounded-2xl p-8 opacity-0 transition-all duration-1000 translate-y-4 text-center pointer-events-auto relative">
-                <h2 class="text-xs uppercase tracking-[0.3em] text-indigo-400 mb-4 font-bold">The Realization</h2>
-                <p id="final-answer" class="text-2xl font-light leading-relaxed text-white glow-text italic">
-                    The universe is just a sequence of nested loops.
-                </p>
-                <div id="cost-display" class="absolute bottom-2 right-4 text-[10px] text-white/30 font-mono uppercase"></div>
+            <div id="epiphany-box" class="glass rounded-2xl p-8 opacity-0 transition-all duration-1000 translate-y-4 text-center relative">
+                <h2 class="text-[10px] uppercase tracking-[0.4em] text-indigo-400 mb-6 font-bold italic">the realization</h2>
+                <p id="final-answer" class="text-2xl font-light leading-relaxed text-white glow-text italic"></p>
+                <div id="cost-display" class="absolute bottom-3 right-5 text-[9px] text-white/20 font-mono uppercase italic tracking-tighter"></div>
+            </div>
+            
+            <div id="history-box" class="glass rounded-2xl p-4 shadow-xl max-h-48 overflow-y-auto thought-stream opacity-0 transition-opacity duration-700">
+                <div class="text-[10px] uppercase tracking-[0.2em] text-white/40 mb-3 border-b border-white/10 pb-2 flex justify-between italic">
+                    <span>community ponders</span>
+                    <span id="user-count" class="text-indigo-400 italic">syncing stream...</span>
+                </div>
+                <div id="history-list" class="space-y-4 text-xs text-white/60"></div>
             </div>
         </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById('orbCanvas');
-        const ctx = canvas.getContext('2d');
-        let width, height, particles = [];
-        let state = 'idle'; // idle, thinking, epiphany
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // supabase config
+        const supabaseUrl = 'https://ohlsmhavvbymhrgzcfax.supabase.co'; 
+        const supabaseKey = 'sb_publishable_vAzh7H5fQMrbaHWiAkuxVg_BTg0miw1';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        let apiKey = localStorage.getItem('pollinations_key') || '';
+        let state = 'idle';
         let intensity = 0;
-        let apiKey = '';
 
-        async function loadModels() {
-            const select = document.getElementById('model-select');
-            select.innerHTML = '<option value="">loading...</option>';
+        window.startGame = () => {
+            document.getElementById('main-menu-overlay').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('app-ui').classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => document.getElementById('history-box').classList.remove('opacity-0'), 1000);
+        };
 
-            try {
-                const headers = apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {};
-                const response = await fetch('https://gen.pollinations.ai/v1/models', { headers });
-                if (!response.ok) throw new Error('Failed to fetch models');
-
-                const json = await response.json();
-                // OpenAI-compatible: { object: "list", data: [...] }
-                const allModels = json.data || [];
-
-                // Only chat/text models
-                const chatModels = allModels.filter(m =>
-                    Array.isArray(m.supported_endpoints) &&
-                    m.supported_endpoints.includes('/v1/chat/completions') &&
-                    Array.isArray(m.output_modalities) &&
-                    m.output_modalities.includes('text')
-                );
-
-                if (chatModels.length === 0) throw new Error('No chat models found');
-
-                select.innerHTML = '';
-                chatModels.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.id;
-                    opt.innerText = m.id;
-                    select.appendChild(opt);
-                });
-
-            } catch (error) {
-                console.error('Error fetching models:', error);
-                select.innerHTML = '';
-                ['openai', 'openai-large', 'openai-fast', 'mistral', 'deepseek', 'gemini', 'claude', 'grok'].forEach(id => {
-                    const opt = document.createElement('option');
-                    opt.value = id;
-                    opt.innerText = id;
-                    select.appendChild(opt);
-                });
-            }
-        }
-
-        function linkAccount() {
+        window.linkAccount = () => {
             const redirectUri = encodeURIComponent(window.location.href.split('#')[0]);
             const clientId = 'pk_mFJA3tgXjocl8Eb7';
             window.location.href = `https://enter.pollinations.ai/authorize?redirect_uri=${redirectUri}&client_id=${clientId}`;
-        }
+        };
 
-        function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        }
-
-        window.addEventListener('resize', resize);
-        resize();
-
-        class Particle {
-            constructor() {
-                this.reset();
+        const fetchPonders = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('ponders')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
+                if (error) throw error;
+                
+                const list = document.getElementById('history-list');
+                list.innerHTML = data.map(p => `
+                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 transition-all hover:border-indigo-500/20 italic">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-indigo-400 font-bold text-[9px] uppercase tracking-[0.1em]">${p.topic}</span>
+                            <span class="text-white/10 text-[8px] font-mono uppercase">${p.model || 'unknown'}</span>
+                        </div>
+                        <p class="text-white/80 mt-2 leading-relaxed">"${p.answer}"</p>
+                    </div>
+                `).join('');
+                document.getElementById('user-count').innerText = 'live stream active';
+            } catch (e) {
+                document.getElementById('user-count').innerText = 'stream offline';
             }
-            reset() {
-                this.x = width / 2;
-                this.y = height / 2;
-                this.angle = Math.random() * Math.PI * 2;
-                this.velocity = Math.random() * 2 + 1;
-                this.life = Math.random() * 100 + 50;
-                this.size = Math.random() * 3 + 1;
-                this.color = `hsla(${220 + Math.random() * 60}, 70%, 60%, ${Math.random()})`;
+        };
+
+        const savePonder = async (topic, answer, model) => {
+            try {
+                await supabase.from('ponders').insert([{ topic, answer, model }]);
+                fetchPonders();
+            } catch (e) {
+                console.error('save failed:', e);
             }
-            update() {
-                this.x += Math.cos(this.angle) * this.velocity * (1 + intensity * 5);
-                this.y += Math.sin(this.angle) * this.velocity * (1 + intensity * 5);
-                this.life--;
-                if (this.life <= 0) this.reset();
-            }
-            draw() {
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
+        };
 
-        for (let i = 0; i < 200; i++) particles.push(new Particle());
-
-        function animate() {
-            ctx.fillStyle = 'rgba(5, 5, 5, 0.15)';
-            ctx.fillRect(0, 0, width, height);
-
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-
-            // Draw Core Orb
-            const glow = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, 150 + (intensity * 100));
-            let color = state === 'thinking' ? `rgba(100, 150, 255, ${0.1 + intensity})` : `rgba(88, 101, 242, 0.15)`;
-            if (state === 'epiphany') color = `rgba(255, 255, 255, 0.2)`;
-
-            glow.addColorStop(0, color);
-            glow.addColorStop(1, 'transparent');
-            ctx.fillStyle = glow;
-            ctx.beginPath();
-            ctx.arc(width/2, height/2, 300 + (intensity * 200), 0, Math.PI * 2);
-            ctx.fill();
-
-            requestAnimationFrame(animate);
-        }
-
-        async function initiateFlow() {
-            if (!apiKey) {
-                const stream = document.getElementById('thought-stream');
-                document.getElementById('terminal-container').classList.remove('opacity-0');
-                stream.innerHTML = '<div class="text-red-400">> ERROR: UNAUTHORIZED. CLICK THE 3 DOTS (TOP RIGHT) TO LINK YOUR POLLINATIONS ACCOUNT.</div>';
-                return;
-            }
-
-            const input = document.getElementById('user-input');
-            const topic = input.value.trim() || "the silent screaming of the void";
-            const selectedModel = document.getElementById('model-select').value || 'openai';
-            const btn = document.getElementById('flow-btn');
+        window.initiateFlow = async () => {
+            if (!apiKey) return alert('link account first');
+            
+            const topicInput = document.getElementById('user-input');
+            const topic = topicInput.value.trim() || "the architecture of coincidence";
+            const model = document.getElementById('model-select').value;
             const stream = document.getElementById('thought-stream');
             const term = document.getElementById('terminal-container');
             const epiphany = document.getElementById('epiphany-box');
             
             if (state === 'thinking') return;
-
-            // UI Reset
-            state = 'thinking';
-            btn.disabled = true;
-            btn.innerText = "PONDERING...";
-            btn.classList.add('opacity-50');
-            epiphany.classList.add('opacity-0');
-            term.classList.remove('opacity-0');
-            stream.innerHTML = '';
-            intensity = 0.2;
-
-            addThought("INITIALIZING CONNECTION TO THE COLLECTIVE...");
             
+            state = 'thinking';
+            document.getElementById('flow-btn').disabled = true;
+            document.getElementById('flow-btn').innerText = "...";
+            term.classList.remove('opacity-0');
+            epiphany.classList.add('opacity-0');
+            stream.innerHTML = '<div class="text-indigo-400/50 italic">> CONNECTING TO NEURAL MESH...</div>';
+            intensity = 0.3;
+
             try {
-                const prompt = `Act as an AI lost in deep thought about "${topic}". Write a sequence of 15 very short, fragmented, high-intensity internal realizations as if you are debugging reality. Format: each thought on a new line. No preamble. End with a single profound final realization on the last line.`;
+                const prompt = `Act as an AI lost in deep thought about "${topic}". Write a sequence of 12 short internal realizations. Format: each thought on its own line. No preamble. The very last line must be a single profound answer to the topic.`;
                 
-                // OpenAI-compatible chat completions endpoint
-                const response = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+                const res = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: selectedModel,
-                        messages: [{ role: 'user', content: prompt }]
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                    body: JSON.stringify({ 
+                        model, 
+                        messages: [{ role: 'user', content: prompt }] 
                     })
                 });
                 
-                if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+                if (!res.ok) throw new Error('API flow interrupted');
                 
-                const data = await response.json();
+                const data = await res.json();
                 const text = data.choices[0].message.content;
-                const thoughts = text.split('\n').filter(t => t.trim().length > 0);
-
-                // Show usage info if available
-                let costInfo = '';
-                if (data.usage?.total_tokens) costInfo = `${data.usage.total_tokens} tokens`;
-                if (data.pollen_cost !== undefined) costInfo = `${data.pollen_cost} pollen`;
-                document.getElementById('cost-display').innerText = costInfo;
-
-                // Stream thoughts one by one
-                for (let i = 0; i < thoughts.length - 1; i++) {
-                    await new Promise(r => setTimeout(r, 400 + Math.random() * 800));
-                    addThought(`> ${thoughts[i]}`);
-                    intensity = (i / thoughts.length);
-                    stream.scrollTop = stream.scrollHeight;
+                const lines = text.split('\n').filter(l => l.trim().length > 0);
+                
+                if (data.usage) {
+                    document.getElementById('cost-display').innerText = `${data.usage.total_tokens} units processed`;
                 }
 
-                // Final Epiphany
-                await new Promise(r => setTimeout(r, 1000));
+                for (let i = 0; i < lines.length - 1; i++) {
+                    await new Promise(r => setTimeout(r, 400));
+                    const d = document.createElement('div');
+                    d.className = "opacity-0 transition-opacity duration-300";
+                    d.innerText = `> ${lines[i]}`;
+                    stream.appendChild(d);
+                    setTimeout(() => d.classList.remove('opacity-0'), 50);
+                    stream.scrollTop = stream.scrollHeight;
+                    intensity = (i / lines.length);
+                }
+
+                await new Promise(r => setTimeout(r, 800));
+                const finalAnswer = lines[lines.length - 1];
+                document.getElementById('final-answer').innerText = finalAnswer;
+                epiphany.classList.remove('opacity-0', 'translate-y-4');
+                
                 state = 'epiphany';
                 intensity = 1.0;
-                
-                const finalThought = thoughts[thoughts.length - 1];
-                document.getElementById('final-answer').innerText = finalThought;
-                epiphany.classList.remove('opacity-0');
-                epiphany.classList.remove('translate-y-4');
-                
-                addThought("CONNECTION STABILIZED. EPIPHANY REACHED.");
 
-            } catch (err) {
-                addThought(`!! ERROR: COGNITIVE OVERLOAD. ${err.message}`);
-            } finally {
-                state = 'idle';
-                btn.disabled = false;
-                btn.innerText = "FLOW";
-                btn.classList.remove('opacity-50');
-                setTimeout(() => { intensity = 0; }, 2000);
+                savePonder(topic, finalAnswer, model);
+
+            } catch (e) { 
+                stream.innerHTML += '<div class="text-red-500">> ERROR: COGNITIVE FLOW BLOCKED.</div>'; 
+            } finally { 
+                state = 'idle'; 
+                document.getElementById('flow-btn').disabled = false;
+                document.getElementById('flow-btn').innerText = "FLOW";
+                setTimeout(() => { intensity = 0; }, 3000);
             }
-        }
-
-        function addThought(text) {
-            const el = document.createElement('div');
-            el.className = "opacity-0 transition-opacity duration-300";
-            el.innerText = text;
-            document.getElementById('thought-stream').appendChild(el);
-            setTimeout(() => el.classList.remove('opacity-0'), 10);
-            document.getElementById('thought-stream').scrollTop = document.getElementById('thought-stream').scrollHeight;
-        }
-
-        window.onload = () => {
-            const hashParams = new URLSearchParams(window.location.hash.slice(1));
-            const key = hashParams.get('api_key');
-            
-            if (key) {
-                apiKey = key;
-                window.history.replaceState(null, null, window.location.pathname);
-                document.getElementById('link-circle').classList.add('border-green-500/50', 'text-green-400');
-                document.getElementById('link-menu').querySelector('span').innerText = 'linked';
-                document.getElementById('link-menu').querySelector('span').classList.replace('text-indigo-400', 'text-green-400');
-            }
-
-            loadModels();
-            animate();
         };
 
-        // Click canvas to trigger if logged in and idle
-        canvas.addEventListener('mousedown', () => {
-            if (state === 'idle' && apiKey !== '') initiateFlow();
+        const canvas = document.getElementById('orbCanvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        const resize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
+        window.addEventListener('resize', resize); 
+        resize();
+
+        const animate = () => {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.15)'; 
+            ctx.fillRect(0, 0, w, h);
+            const g = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, 180 + intensity * 150);
+            const colorBase = state === 'thinking' ? '100, 150, 255' : '88, 101, 242';
+            g.addColorStop(0, `rgba(${colorBase}, ${0.15 + intensity * 0.3})`);
+            g.addColorStop(1, 'transparent');
+            ctx.fillStyle = g; 
+            ctx.beginPath(); 
+            ctx.arc(w/2, h/2, 350 + intensity * 100, 0, Math.PI*2); 
+            ctx.fill();
+            requestAnimationFrame(animate);
+        };
+
+        window.addEventListener('load', async () => {
+            const hash = new URLSearchParams(window.location.hash.slice(1));
+            const urlKey = hash.get('api_key');
+            if (urlKey) {
+                apiKey = urlKey;
+                localStorage.setItem('pollinations_key', apiKey);
+                window.history.replaceState(null, null, window.location.pathname);
+            }
+            
+            if (apiKey) {
+                document.getElementById('auth-status-menu').innerText = 'status: neural link active';
+                document.getElementById('auth-status-menu').classList.replace('text-white/30', 'text-green-500/50');
+                document.getElementById('link-circle').classList.add('border-green-500/50', 'text-green-400');
+                document.getElementById('link-btn-main').innerText = 'Pollen Available';
+                document.getElementById('link-btn-main').classList.add('border-green-400/20', 'text-green-400');
+            }
+            
+            try {
+                const mRes = await fetch('https://gen.pollinations.ai/text/models');
+                const mData = await mRes.json();
+                const list = Array.isArray(mData) ? mData : mData.data;
+                document.getElementById('model-select').innerHTML = list.map(m => `
+                    <option value="${m.id || m}">${m.id || m}</option>
+                `).join('');
+            } catch (e) {}
+            
+            animate();
+            fetchPonders();
+            
+            supabase
+                .channel('public:ponders')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ponders' }, fetchPonders)
+                .subscribe();
         });
     </script>
 </body>
