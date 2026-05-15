@@ -116,8 +116,8 @@
             </div>
 
             <div class="glass rounded-3xl p-2 flex gap-2 shadow-2xl items-center pointer-events-auto">
-                <select id="model-select" class="bg-transparent border-none rounded-2xl px-4 py-4 outline-none text-white/60 hover:text-white cursor-pointer w-48 text-[10px] font-mono uppercase tracking-wider appearance-none focus:ring-0 transition-colors">
-                    <option value="openai">loading models...</option>
+                <select id="model-select" class="bg-black/50 border-none rounded-2xl px-4 py-4 outline-none text-white/60 hover:text-white cursor-pointer w-48 text-[10px] font-mono uppercase tracking-wider appearance-none focus:ring-0 transition-colors">
+                    <option value="openai" class="text-black bg-white">loading models...</option>
                 </select>
                 <div class="w-px h-8 bg-white/10"></div>
                 <input type="text" id="user-input" placeholder="Initiate a concept..." class="bg-transparent border-none px-4 py-4 w-full outline-none text-white/90 text-sm placeholder:text-white/20 focus:ring-0">
@@ -391,10 +391,10 @@
                 const list = Array.isArray(mData) ? mData : (mData.data || []);
                 document.getElementById('model-select').innerHTML = list.map(m => {
                     const modelName = typeof m === 'string' ? m : (m.id || m.name || JSON.stringify(m));
-                    return `<option value="${modelName}">${modelName}</option>`;
+                    return `<option value="${modelName}" class="text-black bg-white">${modelName}</option>`;
                 }).join('');
             } catch (e) {
-                document.getElementById('model-select').innerHTML = '<option value="openai">openai (fallback)</option>';
+                document.getElementById('model-select').innerHTML = '<option value="openai" class="text-black bg-white">openai (fallback)</option>';
             }
             
             animate();
