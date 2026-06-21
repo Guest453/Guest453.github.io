@@ -1,1 +1,13 @@
+h1 {
+    color: white;
+}
 
+.button-class {
+    text-decoration: none;
+    color: blue;
+    text-shadow: black 2px 2px 1px;
+    padding: 7px;
+    display: inline-block;
+    outline: outset blue 1px;
+    background-color: #111;
+}
