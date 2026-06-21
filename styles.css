@@ -10,8 +10,14 @@ h1 {
     display: inline-block;
     outline: outset blue 1px;
     background-color: #111;
+    font-family: 'I KNOW A GHOST';
 }
 
 body {
     background-color: black;
+}
+
+@font-face {
+    font-family: "I KNOW A GHOST";
+    src: url("iknowaghost.ttf");
 }
