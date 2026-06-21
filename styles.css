@@ -11,3 +11,7 @@ h1 {
     outline: outset blue 1px;
     background-color: #111;
 }
+
+body {
+    background-color: black;
+}
